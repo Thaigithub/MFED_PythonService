@@ -1,5 +1,4 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import timedelta
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from Collecting import init
@@ -13,7 +12,7 @@ from bs4 import BeautifulSoup
 app = FastAPI()
 SECRETE_KEY = "This is the secret key"
 model = load_model("./model/Bidirect-LSTM_24h_2feature.h5")
-start = datetime.now() + timedelta(hours=1)
+start = datetime.datetime.now() + datetime.timedelta(hours=1)
 df = init()
 scheduler = BackgroundScheduler()
 
@@ -37,6 +36,19 @@ def hourly_task():
                     env_data.append(row[:-1])
                 row=[]
             else: row.append(i.get_text())
+    newdata = pd.DataFrame(data)
+    newdata.columns = ["Record_ID","Time","Temperature","Disolved Oxygen","Salinity","pH","Turbidity","DHT Temperature","DHT Moisture","Longitude","Latitude"]
+    newdata['Time'] = pd.to_datetime(newdata['Time'],format="%d/%m/%Y %H:%M:%S", dayfirst=True)
+    newdata.set_index('Time', inplace=True)
+    newdata.index = pd.to_datetime(newdata.index)
+    newdata.sort_index(inplace=True)
+    newdata['Temperature'] = newdata["Temperature"].astype(float)
+    newdata = newdata['Temperature']
+    newdata = newdata[newdata>=18]
+    newdata = newdata.resample('H').mean()
+    newdata = newdata.dropna()
+    newdata = newdata[newdata.index>pd.to_datetime(df.tail(1).index[0])]
+    df = pd.concat([df,newdata])
 scheduler.add_job(hourly_task, "interval", hours=1,start_date=start)
 scheduler.start()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
