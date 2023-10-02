@@ -52,7 +52,7 @@ def init():
     
     
     df.columns = ["Record_ID","Time","Temperature","Disolved Oxygen","Salinity","pH","Turbidity","DHT Temperature","DHT Moisture","Longitude","Latitude"]
-    df['Time'] = pd.to_datetime(df['Time'],format="%d/%m/%Y %H:%M:%S")
+    df['Time'] = pd.to_datetime(df['Time'],format="%d/%m/%Y %H:%M:%S", dayfirst=True)
     df.set_index('Time', inplace=True)
     df.index = pd.to_datetime(df.index)
     df.sort_index(inplace=True)
@@ -60,7 +60,7 @@ def init():
     df = df['Temperature']
     df = df[df>=18]
     current_datetime = current_datetime.replace(hour=current_datetime.hour, minute=0, second=0, microsecond=0)
-    df = df[df.index<pd.to_datetime(current_datetime)]
+    df = df[df.index<pd.to_datetime(current_datetime, dayfirst=True)]
     df = df.resample('H').mean()
     df = df.dropna()
     return df
