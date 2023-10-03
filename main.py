@@ -16,7 +16,7 @@ start = datetime.datetime.now() + datetime.timedelta(hours=1)
 df = init()
 scheduler = BackgroundScheduler()
 
-def hourly_task():
+def hourly_task(dframe):
     env_data = []
     session = requests.Session()
     session.post('https://rapido.npnlab.com/vi/Account/Login?username=nhan&password=nhan')
@@ -47,9 +47,9 @@ def hourly_task():
     newdata = newdata[newdata>=18]
     newdata = newdata.resample('H').mean()
     newdata = newdata.dropna()
-    newdata = newdata[newdata.index>pd.to_datetime(df.tail(1).index[0])]
-    df = pd.concat([df,newdata])
-scheduler.add_job(hourly_task, "interval", hours=1,start_date=start)
+    newdata = newdata[newdata.index>pd.to_datetime(dframe.tail(1).index[0])]
+    dframe = pd.concat([dframe,newdata])
+scheduler.add_job(hourly_task, "interval", hours=1,start_date=start, args=(df,))
 scheduler.start()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
