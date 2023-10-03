@@ -36,7 +36,7 @@ def hourly_task():
                     env_data.append(row[:-1])
                 row=[]
             else: row.append(i.get_text())
-    newdata = pd.DataFrame(data)
+    newdata = pd.DataFrame(env_data)
     newdata.columns = ["Record_ID","Time","Temperature","Disolved Oxygen","Salinity","pH","Turbidity","DHT Temperature","DHT Moisture","Longitude","Latitude"]
     newdata['Time'] = pd.to_datetime(newdata['Time'],format="%d/%m/%Y %H:%M:%S", dayfirst=True)
     newdata.set_index('Time', inplace=True)
